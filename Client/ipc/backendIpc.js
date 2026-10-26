@@ -3,17 +3,25 @@
 const { app, ipcMain } = require('electron');
 const grpcClient = require('../grpc-client');
 
+function getEffectiveEndpoint(endpoint) {
+  if (endpoint && endpoint !== 'localhost:50051' && endpoint !== '127.0.0.1:50051') {
+    return endpoint;
+  }
+  return process.env.GRPC_SERVER_ENDPOINT || 'api-hostrif-client.ismailabbasi.qzz.io:50051';
+}
+
 function registerBackendIpc() {
   ipcMain.handle('backend:login', async (_event, { email, password, endpoint }) => {
     try {
-      if (endpoint) grpcClient.initGrpcClient(endpoint);
+      const targetEndpoint = getEffectiveEndpoint(endpoint);
+      grpcClient.initGrpcClient(targetEndpoint);
       const res = await grpcClient.login(email, password);
       if (res && res.success && res.token) {
         grpcClient.saveSession(app.getPath('userData'), {
           token: res.token,
           userId: res.user_id,
           email: res.email,
-          endpoint: endpoint || 'localhost:50051',
+          endpoint: targetEndpoint,
           savedAt: Date.now()
         });
       }
@@ -33,7 +41,7 @@ function registerBackendIpc() {
 
   ipcMain.handle('backend:get-config', async (_event, { token, endpoint }) => {
     try {
-      if (endpoint) grpcClient.initGrpcClient(endpoint);
+      grpcClient.initGrpcClient(getEffectiveEndpoint(endpoint));
       return await grpcClient.getAssignedConfig(token);
     } catch (err) {
       return { success: false, message: err.message };
@@ -42,7 +50,7 @@ function registerBackendIpc() {
 
   ipcMain.handle('backend:get-proxies', async (_event, { token, statusFilter, endpoint }) => {
     try {
-      if (endpoint) grpcClient.initGrpcClient(endpoint);
+      grpcClient.initGrpcClient(getEffectiveEndpoint(endpoint));
       return await grpcClient.getAssignedProxies(token, statusFilter || 'all');
     } catch (err) {
       return { success: false, proxies: [], message: err.message };
@@ -51,7 +59,7 @@ function registerBackendIpc() {
 
   ipcMain.handle('backend:update-proxy-status', async (_event, { token, proxyId, status, errorMessage, endpoint }) => {
     try {
-      if (endpoint) grpcClient.initGrpcClient(endpoint);
+      grpcClient.initGrpcClient(getEffectiveEndpoint(endpoint));
       return await grpcClient.updateProxyStatus(token, proxyId, status, errorMessage || '');
     } catch (err) {
       return { success: false, message: err.message };

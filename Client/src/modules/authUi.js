@@ -29,8 +29,7 @@ export async function syncAssignedBackendData(showBanner = true) {
     return;
   }
 
-  try {
-    const endpoint = state.currentUserSession.endpoint || 'localhost:50051';
+    const endpoint = state.currentUserSession.endpoint || '';
 
     // 1. Fetch Assigned AdsPower Configuration
     const cfgRes = await window.api.fetchAssignedConfig(state.currentUserSession.token, endpoint);
@@ -150,8 +149,8 @@ export function initAuthListeners() {
 
       const email = loginEmail.value.trim();
       const password = loginPassword.value;
-      // Default gRPC endpoint - never burden client users with technical connection URLs
-      const endpoint = localStorage.getItem('hostrif_backend_endpoint') || 'localhost:50051';
+      // Default gRPC endpoint from settings or environment
+      const endpoint = localStorage.getItem('hostrif_backend_endpoint') || '';
 
       if (loginError) loginError.classList.add('hidden');
       if (loginSubmitBtn) loginSubmitBtn.disabled = true;

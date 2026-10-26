@@ -28,6 +28,7 @@ function bootstrapApp() {
   const apiUrlInput = document.getElementById('apiUrlInput');
   const apiKeyInput = document.getElementById('apiKeyInput');
   const savedUrl = localStorage.getItem('hostrif_api_url') || 'http://127.0.0.1:50325';
+  const savedKey = localStorage.getItem('hostrif_api_key') || '';
   const effectiveUrl = savedUrl.includes(':50425') ? savedUrl.replace(':50425', ':50325') : savedUrl;
   localStorage.setItem('hostrif_api_url', effectiveUrl);
   if (apiUrlInput) apiUrlInput.value = effectiveUrl;
