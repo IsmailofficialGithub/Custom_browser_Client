@@ -11,19 +11,23 @@ function getEffectiveEndpoint(endpoint) {
 }
 
 function registerBackendIpc() {
-  ipcMain.handle('backend:login', async (_event, { email, password, endpoint }) => {
+  ipcMain.handle('backend:login', async (_event, { email, password, endpoint, rememberMe }) => {
     try {
       const targetEndpoint = getEffectiveEndpoint(endpoint);
       grpcClient.initGrpcClient(targetEndpoint);
       const res = await grpcClient.login(email, password);
       if (res && res.success && res.token) {
-        grpcClient.saveSession(app.getPath('userData'), {
-          token: res.token,
-          userId: res.user_id,
-          email: res.email,
-          endpoint: targetEndpoint,
-          savedAt: Date.now()
-        });
+        if (rememberMe !== false) {
+          grpcClient.saveSession(app.getPath('userData'), {
+            token: res.token,
+            userId: res.user_id,
+            email: res.email,
+            endpoint: targetEndpoint,
+            savedAt: Date.now()
+          });
+        } else {
+          grpcClient.clearSession(app.getPath('userData'));
+        }
       }
       return res;
     } catch (err) {

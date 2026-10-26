@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld('api', {
   openProxyFile: () => ipcRenderer.invoke('dialog:open-file'),
 
   // Backend gRPC API
-  login: (email, password, endpoint) => ipcRenderer.invoke('backend:login', { email, password, endpoint }),
+  login: (email, password, endpoint, rememberMe) => ipcRenderer.invoke('backend:login', { email, password, endpoint, rememberMe }),
   getSession: () => ipcRenderer.invoke('backend:get-session'),
   logout: () => ipcRenderer.invoke('backend:logout'),
   fetchAssignedConfig: (token, endpoint) => ipcRenderer.invoke('backend:get-config', { token, endpoint }),
