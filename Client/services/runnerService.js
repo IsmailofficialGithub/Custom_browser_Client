@@ -129,7 +129,7 @@ class RunnerService {
 
         const effectiveOs = proxy.os || 'windows';
         this.sendProgress(i + 1, total, proxy, profileName);
-        this.log('info', `[${i + 1}/${total}] Preparing ${effectiveOs.toUpperCase()} profile for proxy ${proxy.proxy_host}:${proxy.proxy_port} (${proxy.proxy_type})`);
+        this.log('info', `[${i + 1}/${total}] Preparing ${effectiveOs.toUpperCase()} profile: host=${proxy.proxy_host}:${proxy.proxy_port}, user=${proxy.proxy_user || '(empty)'}, pass=${proxy.proxy_password ? (proxy.proxy_password.slice(0, 8) + '...') : '(empty)'}`);
 
         // 1. Create profile
         this.setStatus('creating');
