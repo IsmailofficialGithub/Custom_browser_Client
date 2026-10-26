@@ -29,6 +29,7 @@ export async function syncAssignedBackendData(showBanner = true) {
     return;
   }
 
+  try {
     const endpoint = state.currentUserSession.endpoint || '';
 
     // 1. Fetch Assigned AdsPower Configuration
