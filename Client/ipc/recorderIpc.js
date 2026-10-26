@@ -6,6 +6,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const grpcClient = require('../grpc-client');
 const { app } = require('electron');
+const { getBackendEndpoints } = require('../services/remoteConfig');
 
 let floatingRecorderWindow = null;
 
@@ -99,7 +100,8 @@ function registerRecorderIpc() {
       // Write to temp file on disk to prevent RAM bloat during stream transmission
       await fs.promises.writeFile(tempFilePath, Buffer.from(buffer));
 
-      const backendUrl = process.env.ADMIN_HTTP_URL || 'http://localhost:50052';
+      const endpoints = await getBackendEndpoints();
+      const backendUrl = endpoints.restUrl;
 
       // Resilient upload with retry (handles concurrent server spikes or 429 backoff)
       let lastError = null;
