@@ -142,7 +142,15 @@ export function initAuthListeners() {
   const userEmailText = document.getElementById('userEmailText');
   const loginOverlay = document.getElementById('loginOverlay');
   const logoutBtn = document.getElementById('logoutBtn');
+  const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
   const fetchAssignedProxiesBtn = document.getElementById('fetchAssignedProxiesBtn');
+
+  // Prefill remembered email if present
+  const rememberedEmail = localStorage.getItem('hostrif_remember_email');
+  if (rememberedEmail && loginEmail) {
+    loginEmail.value = rememberedEmail;
+    if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
+  }
 
   // Password visibility toggle
   if (togglePasswordBtn && loginPassword) {
@@ -163,6 +171,7 @@ export function initAuthListeners() {
 
       const email = loginEmail.value.trim();
       const password = loginPassword.value;
+      const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : true;
       // Default gRPC endpoint from settings or environment
       const endpoint = localStorage.getItem('hostrif_backend_endpoint') || '';
 
@@ -171,8 +180,14 @@ export function initAuthListeners() {
       if (loginSubmitText) loginSubmitText.textContent = 'Connecting...';
 
       try {
-        const res = await window.api.login(email, password, endpoint);
+        const res = await window.api.login(email, password, endpoint, rememberMe);
         if (res && res.success) {
+          if (rememberMe) {
+            localStorage.setItem('hostrif_remember_email', email);
+          } else {
+            localStorage.removeItem('hostrif_remember_email');
+          }
+
           state.currentUserSession = {
             token: res.token,
             userId: res.user_id,
@@ -182,6 +197,7 @@ export function initAuthListeners() {
           if (userEmailText) userEmailText.textContent = res.email;
           if (userBadgeWrap) userBadgeWrap.style.display = 'inline-flex';
           if (loginOverlay) loginOverlay.classList.add('hidden');
+          loginPassword.value = '';
           renderIcons();
 
           showPromptBanner(`Welcome back, ${res.email}!`, 'success');
@@ -219,6 +235,7 @@ export function initAuthListeners() {
       state.currentUserSession = null;
       if (userBadgeWrap) userBadgeWrap.style.display = 'none';
       if (loginOverlay) loginOverlay.classList.remove('hidden');
+      if (loginPassword) loginPassword.value = '';
       showPromptBanner('You have been signed out.', 'warning');
       appendLog({
         timestamp: now(),

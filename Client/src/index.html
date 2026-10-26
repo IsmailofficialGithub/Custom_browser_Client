@@ -76,13 +76,14 @@
         </div>
 
         <div class="header-right">
-          <div class="user-badge-wrap" id="userBadgeWrap" style="display:none;align-items:center;gap:8px;margin-right:4px;">
-            <div class="user-chip" id="userEmailChip" title="Logged in user" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:20px;font-size:12px;font-weight:500;color:#c4b5fd;">
-              <i data-lucide="user" style="width:13px;height:13px;"></i>
-              <span id="userEmailText">demo@hostrif.com</span>
+          <div class="user-badge-wrap" id="userBadgeWrap" style="display:none;align-items:center;gap:10px;margin-right:8px;">
+            <div class="user-chip" id="userEmailChip" title="Logged in user" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:20px;font-size:12px;font-weight:500;color:#c4b5fd;">
+              <i data-lucide="user" style="width:14px;height:14px;"></i>
+              <span id="userEmailText">user@hostrif.com</span>
             </div>
-            <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Sign out" style="padding:6px;border-radius:8px;">
-              <i data-lucide="log-out" style="width:15px;height:15px;color:var(--muted)"></i>
+            <button class="btn btn-secondary btn-sm" id="logoutBtn" title="Sign out" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#f87171;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.1);cursor:pointer;">
+              <i data-lucide="log-out" style="width:14px;height:14px;"></i>
+              <span>Logout</span>
             </button>
           </div>
           <button class="btn btn-secondary" id="quickSkipBtn" disabled>
@@ -619,6 +620,13 @@
               <i data-lucide="eye" id="togglePasswordIcon"></i>
             </button>
           </div>
+        </div>
+
+        <div class="login-options" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;margin-bottom:8px;">
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none;">
+            <input type="checkbox" id="rememberMeCheckbox" style="accent-color:#8b5cf6;width:15px;height:15px;cursor:pointer;" checked />
+            <span>Remember me</span>
+          </label>
         </div>
 
         <div class="login-error hidden" id="loginError">
