@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package hostrif;
+
+service HostrifService {
+  // Authentication
+  rpc Login (LoginRequest) returns (LoginResponse);
+
+  // Configuration
+  rpc GetAssignedConfig (GetConfigRequest) returns (GetConfigResponse);
+
+  // Proxies
+  rpc GetAssignedProxies (GetProxiesRequest) returns (GetProxiesResponse);
+  rpc UpdateProxyStatus (UpdateProxyStatusRequest) returns (UpdateProxyStatusResponse);
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string token = 2;
+  string message = 3;
+  string user_id = 4;
+  string email = 5;
+}
+
+message GetConfigRequest {
+  string token = 1;
+}
+
+message GetConfigResponse {
+  bool success = 1;
+  string adspower_url = 2;
+  string adspower_api_key = 3;
+  string message = 4;
+}
+
+message GetProxiesRequest {
+  string token = 1;
+  string status_filter = 2; // "fresh", "used", "failed", "all"
+}
+
+message ProxyItem {
+  string id = 1;
+  string host = 2;
+  string port = 3;
+  string user = 4;
+  string pass = 5;
+  string protocol = 6;
+  string os = 7;
+  string status = 8; // "fresh", "used", "failed"
+  string last_used_at = 9;
+}
+
+message GetProxiesResponse {
+  bool success = 1;
+  repeated ProxyItem proxies = 2;
+  string message = 3;
+}
+
+message UpdateProxyStatusRequest {
+  string token = 1;
+  string proxy_id = 2;
+  string status = 3; // "fresh", "used", "failed"
+  string error_message = 4;
+}
+
+message UpdateProxyStatusResponse {
+  bool success = 1;
+  string message = 2;
+}

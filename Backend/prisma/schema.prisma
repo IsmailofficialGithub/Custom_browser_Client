@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  manager
+  user
+}
+
+enum LeadStatus {
+  pending
+  approved
+  rejected
+}
+
+model Team {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  code            String           @unique
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  managers        User[]           @relation("TeamManager")
+  members         User[]           @relation("TeamMember")
+  proxies         Proxy[]
+  leadSubmissions LeadSubmission[]
+
+  @@map("teams")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  passwordHash     String            @map("password_hash")
+  role             Role              @default(user)
+  permissions      String[]          @default([])
+
+  managedTeamId    String?           @map("managed_team_id")
+  managedTeam      Team?             @relation("TeamManager", fields: [managedTeamId], references: [id], onDelete: SetNull)
+
+  memberTeamId     String?           @map("member_team_id")
+  memberTeam       Team?             @relation("TeamMember", fields: [memberTeamId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  adsPowerConfig   AdsPowerConfig?
+  proxies          Proxy[]
+  salaryConfig     UserSalaryConfig?
+  evomiConfig      EvomiConfig?
+  leadSubmissions  LeadSubmission[]
+  monthlyLedgers   MonthlyLedger[]
+
+  @@map("users")
+}
+
+model EvomiConfig {
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  enabled        Boolean  @default(false)
+  apiKey         String   @default("") @map("api_key")
+  country        String   @default("all")
+  protocol       String   @default("http")
+  osDistribution Json     @map("os_distribution")
+  batchSize      Int      @default(10) @map("batch_size")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("evomi_configs")
+}
+
+model UserSalaryConfig {
+  id            String   @id @default(uuid())
+  userId        String   @unique @map("user_id")
+  monthlySalary Float    @default(0.0) @map("monthly_salary")
+  dailyLeadGoal Int      @default(50) @map("daily_lead_goal")
+  currency      String   @default("PKR")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_salary_configs")
+}
+
+model LeadSubmission {
+  id            String      @id @default(uuid())
+  userId        String      @map("user_id")
+  teamId        String?     @map("team_id")
+  videoUrl      String      @map("video_url")
+  fileSizeBytes Int         @default(0) @map("file_size_bytes")
+  videoDuration Int         @default(0) @map("video_duration")
+  calculatedPay Float       @default(0.0) @map("calculated_pay")
+  status        LeadStatus  @default(pending)
+  reviewedBy    String?     @map("reviewed_by")
+  reviewedAt    DateTime?   @map("reviewed_at")
+  reviewNotes   String?     @map("review_notes")
+  submittedAt   DateTime    @default(now()) @map("submitted_at")
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team          Team?       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@map("lead_submissions")
+}
+
+model MonthlyLedger {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  year          Int
+  month         Int
+  baseSalary    Float    @default(0.0) @map("base_salary")
+  totalLeads    Int      @default(0) @map("total_leads")
+  approvedLeads Int      @default(0) @map("approved_leads")
+  earnedCredit  Float    @default(0.0) @map("earned_credit")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year, month])
+  @@map("monthly_ledgers")
+}
+
+model AdsPowerConfig {
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  adspowerUrl    String   @default("http://local.adspower.net:50325") @map("adspower_url")
+  adspowerApiKey String   @default("") @map("adspower_api_key")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("adspower_configs")
+}
+
+model Proxy {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  teamId       String?   @map("team_id")
+  team         Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  host         String
+  port         String
+  user         String    @default("")
+  pass         String    @default("")
+  protocol     String    @default("socks5")
+  os           String    @default("windows")
+  status       String    @default("fresh")
+  errorMessage String?   @map("error_message")
+  lastUsedAt   DateTime? @map("last_used_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  userRef User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("proxies")
+}

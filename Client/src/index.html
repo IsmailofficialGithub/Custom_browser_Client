@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HOSTRIF Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <script src="lucide.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="icon-wrap">
+          <i data-lucide="layers" class="logo-icon"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">HOSTRIF</span>
+          <span class="logo-badge">CLIENT</span>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-tab="runner" id="navRunner">
+          <i data-lucide="play-circle"></i>
+          <span>Runner</span>
+        </button>
+        <button class="nav-item" data-tab="proxies" id="navProxies">
+          <i data-lucide="network"></i>
+          <span>Proxies</span>
+          <span class="nav-badge" id="navProxyCount">0</span>
+        </button>
+        <button class="nav-item" data-tab="earnings" id="navEarnings">
+          <i data-lucide="badge-dollar-sign"></i>
+          <span>My Earnings</span>
+        </button>
+        <button class="nav-item" data-tab="settings" id="navSettings">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="engine-card" id="engineStatusCard">
+          <div class="engine-card-header">
+            <span class="status-dot connecting" id="statusDot"></span>
+            <span class="engine-card-title" id="statusTitle">Connecting...</span>
+            <button class="refresh-btn" id="refreshStatusBtn" title="Check connection">
+              <i data-lucide="rotate-cw"></i>
+            </button>
+          </div>
+          <div class="engine-card-meta">
+            <span class="engine-endpoint" id="statusEndpoint">127.0.0.1:50325</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main">
+      <!-- Top Blurred Header -->
+      <header class="header">
+        <div class="header-left">
+          <h2 class="page-title" id="pageTitle">Sequential Runner</h2>
+          <div class="status-pill idle" id="headerStatusPill">
+            <span class="dot"></span>
+            <span class="status-text" id="headerStatusText">IDLE</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="user-badge-wrap" id="userBadgeWrap" style="display:none;align-items:center;gap:8px;margin-right:4px;">
+            <div class="user-chip" id="userEmailChip" title="Logged in user" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:20px;font-size:12px;font-weight:500;color:#c4b5fd;">
+              <i data-lucide="user" style="width:13px;height:13px;"></i>
+              <span id="userEmailText">demo@hostrif.com</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Sign out" style="padding:6px;border-radius:8px;">
+              <i data-lucide="log-out" style="width:15px;height:15px;color:var(--muted)"></i>
+            </button>
+          </div>
+          <button class="btn btn-secondary" id="quickSkipBtn" disabled>
+            <i data-lucide="skip-forward"></i>
+            <span>Skip</span>
+          </button>
+          <button class="btn btn-danger" id="quickStopBtn" disabled>
+            <i data-lucide="square"></i>
+            <span>Stop</span>
+          </button>
+          <button class="btn btn-primary" id="quickStartBtn">
+            <i data-lucide="play"></i>
+            <span>Start Run</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Views (Tabs) -->
+      <div class="content-scroll">
+        <!-- ── TAB 1: RUNNER ─────────────────────────────────────────── -->
+        <section class="tab-view active" id="tabRunner">
+          <!-- Stat Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Loaded Proxies</span>
+                <i data-lucide="network" class="stat-icon"></i>
+              </div>
+              <div class="stat-value" id="statProxyCount">0</div>
+              <div class="stat-hint">Ready for sequential run</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Progress</span>
+                <i data-lucide="list-ordered" class="stat-icon"></i>
+              </div>
+              <div class="stat-value" id="statProgress">0 / 0</div>
+              <div class="stat-hint" id="statPctHint">0% completed</div>
+            </div>
+
+            <div class="stat-card highlight">
+              <div class="stat-header">
+                <span class="stat-label">Active Session</span>
+                <i data-lucide="browser" class="stat-icon"></i>
+              </div>
+              <div class="stat-value mono" id="statActiveProfile">—</div>
+              <div class="stat-hint mono" id="statActiveProxy">Proxy: —</div>
+            </div>
+          </div>
+
+          <!-- Progress Bar Card -->
+          <div class="glass-card progress-card">
+            <div class="progress-info-row">
+              <span class="progress-label">Run Execution</span>
+              <span class="progress-pct" id="progressPctText">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Live Terminal Card -->
+          <div class="glass-card terminal-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <i data-lucide="terminal" class="card-title-icon"></i>
+                <span class="card-title">Live Execution Log</span>
+              </div>
+              <div class="card-actions">
+                <button class="tool-btn" id="clearLogBtn">
+                  <i data-lucide="trash-2"></i>
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
+            <div class="terminal-body" id="logTerminal">
+              <div class="log-entry info">
+                <span class="time">--:--:--</span>
+                <span class="tag tag-info">READY</span>
+                <span class="msg">HOSTRIF Client initialized. Paste proxies in the Proxies tab and click Start.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 2: PROXIES ────────────────────────────────────────── -->
+        <section class="tab-view" id="tabProxies">
+          <!-- Page Toolbar -->
+          <div class="page-toolbar">
+            <button type="button" class="btn btn-primary btn-sm" id="fetchAssignedProxiesBtn" title="Fetch assigned proxies from PostgreSQL via gRPC">
+              <i data-lucide="cloud-download"></i> <span>Sync Assigned</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="formatProxiesBtn" title="Clean, remove extra spaces, tabs & quotes">
+              <i data-lucide="sparkles"></i> <span>Format &amp; Clean</span>
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="importFileBtn">
+              <i data-lucide="folder-open"></i> <span>Load File</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="clearTextareaBtn">
+              <i data-lucide="x"></i> <span>Clear Input</span>
+            </button>
+          </div>
+
+          <!-- Top Description -->
+          <p class="field-hint" style="margin-bottom:14px;max-width:760px;font-size:13px;color:var(--muted);line-height:1.5">
+            Proxies drive which country and device type each profile uses. Append <code style="font-size:11px;color:var(--primary)">:mac</code>, <code style="font-size:11px;color:var(--primary)">:android</code>, or <code style="font-size:11px;color:var(--primary)">:ios</code> to the URL line to set OS.
+          </p>
+
+          <!-- Feedback Notification Prompt -->
+          <div class="prompt-banner hidden" id="proxyPromptBanner">
+            <div class="prompt-left">
+              <i data-lucide="check-circle" class="prompt-icon" id="promptIcon"></i>
+              <span class="prompt-text" id="promptText">Proxies formatted successfully.</span>
+            </div>
+            <button class="prompt-close" id="promptCloseBtn" title="Dismiss">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <!-- Two-Col Grid: Add Proxies (Left) & Proxy Stats (Right) -->
+          <div class="two-col">
+            <!-- Left Card: Add Proxies -->
+            <div class="glass-card add-proxy-card">
+              <div class="card-title" style="margin-bottom:12px;font-size:15px;font-weight:600">Add Proxies</div>
+              
+              <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label" style="font-size:12px;color:var(--muted);margin-bottom:6px;display:block">
+                  Paste proxy URL(s) — one per line
+                </label>
+                <textarea
+                  id="proxyBulk"
+                  class="textarea proxy-bulk-textarea"
+                  spellcheck="false"
+                  placeholder="socks5://host:1002:user:pass&#10;socks5://host:1002:user:pass:mac&#10;http://host:1000:user:pass:windows"
+                ></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label" style="font-size:12px;color:var(--muted);margin-bottom:8px;display:block">
+                  OR fill in manually
+                </label>
+                <div class="input-row">
+                  <input class="input" id="px-host" placeholder="host" />
+                  <input class="input" id="px-port" placeholder="port" type="number" style="max-width:95px" />
+                </div>
+                <div class="input-row" style="margin-top:8px">
+                  <input class="input" id="px-user" placeholder="username" />
+                  <input class="input" id="px-pass" placeholder="password" type="text" />
+                </div>
+                <div class="input-row" style="margin-top:8px">
+                  <select class="select custom-select" id="px-proto">
+                    <option value="socks5" selected>socks5</option>
+                    <option value="http">http</option>
+                    <option value="https">https</option>
+                    <option value="socks4">socks4</option>
+                  </select>
+                  <select class="select custom-select" id="px-os">
+                    <option value="windows" selected>windows</option>
+                    <option value="mac">mac</option>
+                    <option value="android">android</option>
+                    <option value="ios">ios</option>
+                    <option value="linux">linux</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="addProxiesBtn" style="width:100%">
+                <i data-lucide="plus-circle"></i>
+                <span>Add Proxy/Proxies</span>
+              </button>
+            </div>
+
+            <!-- Right Card: Proxy Stats -->
+            <div class="glass-card proxy-stats-card">
+              <div class="card-title" style="margin-bottom:12px;font-size:15px;font-weight:600">Proxy Stats</div>
+              
+              <div class="stats-rows-wrap">
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Total in list</span>
+                  <span id="proxyCount" class="stat-line-val bold">—</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Windows proxies</span>
+                  <span id="px-win-count" class="stat-line-val">—</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Mac proxies</span>
+                  <span id="px-mac-count" class="stat-line-val">—</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Android proxies</span>
+                  <span id="px-and-count" class="stat-line-val">—</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">iOS proxies</span>
+                  <span id="px-ios-count" class="stat-line-val">—</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Other (Linux, …)</span>
+                  <span id="px-other-count" class="stat-line-val">—</span>
+                </div>
+
+                <hr class="divider" style="border:none;border-top:1px solid var(--border);margin:4px 0" />
+
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Fresh</span>
+                  <span class="badge badge-fresh" id="px-fresh-badge">0 fresh</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Used</span>
+                  <span class="badge badge-used" id="px-used-badge">0 used</span>
+                </div>
+                <div class="stat-line-row">
+                  <span class="stat-line-label">Failed</span>
+                  <span class="badge badge-failed" id="px-failed-badge">0 failed</span>
+                </div>
+
+                <!-- Delete Actions -->
+                <div style="display:flex;gap:8px;margin-top:6px">
+                  <button class="btn btn-danger-outline btn-sm" id="deleteSelectedBtn" style="flex:1">
+                    <i data-lucide="trash-2"></i>
+                    <span>Delete Selected</span>
+                  </button>
+                  <button class="btn btn-danger-outline btn-sm" id="deleteAllBtn" style="flex:1" title="Delete all proxies in the list">
+                    <i data-lucide="trash"></i>
+                    <span>Delete All</span>
+                  </button>
+                </div>
+
+                <!-- Delete by Device -->
+                <p class="field-hint" style="margin:8px 0 4px;font-size:12px;color:var(--muted)">
+                  Remove every proxy tagged for one device (fresh, used, and failed lists).
+                </p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                  <select class="custom-select custom-select-sm" id="px-delete-by-os" style="flex:1;min-width:140px">
+                    <option value="">Device: choose…</option>
+                    <option value="windows">All Windows</option>
+                    <option value="mac">All Mac</option>
+                    <option value="android">All Android</option>
+                    <option value="ios">All iOS</option>
+                    <option value="linux">All Linux</option>
+                    <option value="other">All other OS only</option>
+                    <option value="linux_and_other">Linux &amp; other</option>
+                  </select>
+                  <button type="button" class="btn btn-danger-outline btn-sm" id="deleteByOsBtn">
+                    <i data-lucide="smartphone"></i>
+                    <span>Delete by device</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Card: Proxy List Table -->
+          <div class="glass-card proxy-list-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <i data-lucide="list" class="card-title-icon"></i>
+                <span class="card-title">Proxy List</span>
+                <span id="px-table-count" style="color:var(--muted);font-size:12px;font-weight:400">(0)</span>
+              </div>
+
+              <div class="card-actions">
+                <button type="button" class="btn btn-ghost btn-sm" id="refreshTableBtn" title="Refresh list">
+                  <i data-lucide="refresh-cw"></i> <span>Refresh</span>
+                </button>
+                <label class="check-row" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--muted)">
+                  <input type="checkbox" id="selectAll" />
+                  <span>Select all</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="table-container">
+              <table class="proxy-table">
+                <thead>
+                  <tr>
+                    <th style="width:34px;text-align:center"><input type="checkbox" id="tableHeadCheck" /></th>
+                    <th>Host</th>
+                    <th>Port</th>
+                    <th>User</th>
+                    <th>Protocol</th>
+                    <th>OS</th>
+                    <th>Status</th>
+                    <th style="width:46px;text-align:center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="proxyTableBody">
+                  <tr class="empty-row">
+                    <td colspan="8">
+                      <div class="empty-state">
+                        <i data-lucide="server-off"></i>
+                        <p>No proxies loaded</p>
+                        <span>Add proxies above using bulk paste or manual form</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 3: EARNINGS & APPROVED LEADS ──────────────────────── -->
+        <section class="tab-view" id="tabEarnings">
+          <!-- Top Month Selector & Actions -->
+          <div class="glass-card" style="margin-bottom: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i data-lucide="calendar" style="width: 18px; height: 18px; color: var(--primary);"></i>
+              <label for="earningsMonthSelect" style="font-size: 13px; font-weight: 600; color: var(--text);">Payroll Month:</label>
+              <select id="earningsMonthSelect" style="padding: 6px 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; outline: none; cursor: pointer;">
+                <option value="">Current Month</option>
+              </select>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="refreshEarningsBtn" title="Refresh Payroll & Leads">
+              <i data-lucide="rotate-cw"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <!-- Stat Grid -->
+          <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Pay Per Lead</span>
+                <i data-lucide="tag" class="stat-icon"></i>
+              </div>
+              <div class="stat-value" id="statPerLead" style="color: #60a5fa;">PKR 0.00</div>
+              <div class="stat-hint" id="statSalaryHint">Base Salary: PKR 0.00</div>
+            </div>
+
+            <div class="stat-card highlight">
+              <div class="stat-header">
+                <span class="stat-label">Total Earned</span>
+                <i data-lucide="badge-dollar-sign" class="stat-icon" style="color: #10b981;"></i>
+              </div>
+              <div class="stat-value" id="statTotalEarned" style="color: #10b981;">PKR 0.00</div>
+              <div class="stat-hint">Approved credit for this month</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Approved Leads</span>
+                <i data-lucide="check-circle-2" class="stat-icon" style="color: #10b981;"></i>
+              </div>
+              <div class="stat-value" id="statApprovedCount">0</div>
+              <div class="stat-hint">Verified session proofs</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Target Progress</span>
+                <i data-lucide="target" class="stat-icon"></i>
+              </div>
+              <div class="stat-value" id="statMonthlyTarget">0 / 0</div>
+              <div class="stat-hint">Total monthly lead target</div>
+            </div>
+          </div>
+
+          <!-- Approved Leads Table Card -->
+          <div class="glass-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="card-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+              <div class="card-title-wrap">
+                <i data-lucide="award" class="card-title-icon" style="color: #10b981;"></i>
+                <span class="card-title">Approved Session Leads</span>
+              </div>
+              <span id="earningsPageIndicator" style="font-size: 12px; color: var(--muted); font-weight: 500;">
+                Page 1 of 1 (0 approved leads)
+              </span>
+            </div>
+
+            <!-- Table Container -->
+            <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+              <table class="proxy-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Duration</th>
+                    <th>Earned Pay</th>
+                    <th>Status</th>
+                    <th style="text-align: right; width: 80px;">Video</th>
+                  </tr>
+                </thead>
+                <tbody id="earningsTableBody">
+                  <tr class="empty-row">
+                    <td colspan="5">
+                      <div class="empty-state" style="padding: 36px 16px; text-align: center; color: var(--dim);">
+                        <i data-lucide="badge-dollar-sign" style="width: 32px; height: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
+                        <p style="color: var(--muted); font-weight: 500;">No approved leads found</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; gap: 8px; background: rgba(0,0,0,0.15);">
+              <button class="btn btn-secondary btn-sm" id="earningsPrevBtn" disabled style="padding: 6px 12px; font-size: 12px;">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                <span>Previous</span>
+              </button>
+              <button class="btn btn-secondary btn-sm" id="earningsNextBtn" disabled style="padding: 6px 12px; font-size: 12px;">
+                <span>Next</span>
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 4: SETTINGS ───────────────────────────────────────── -->
+        <section class="tab-view" id="tabSettings">
+          <div class="glass-card settings-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <i data-lucide="sliders" class="card-title-icon"></i>
+                <span class="card-title">Browser Engine Local API</span>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="apiUrlInput">Local API Base URL</label>
+                <input
+                  type="text"
+                  id="apiUrlInput"
+                  value="http://127.0.0.1:50325"
+                  placeholder="http://127.0.0.1:50325"
+                />
+                <span class="field-hint">Default local anti-detect engine port is 50325.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="apiKeyInput">API Key (Optional)</label>
+                <input
+                  type="password"
+                  id="apiKeyInput"
+                  placeholder="Leave empty if token is not enabled"
+                />
+                <span class="field-hint">Only required if token authentication is enabled in engine settings.</span>
+              </div>
+            </div>
+
+            <div class="settings-actions">
+              <button class="btn btn-primary" id="testConnectionBtn">
+                <i data-lucide="activity"></i>
+                <span>Test API Connection</span>
+              </button>
+              <span class="test-feedback" id="testFeedback"></span>
+            </div>
+          </div>
+
+          <div class="glass-card info-card">
+            <div class="card-header">
+              <div class="card-title-wrap">
+                <i data-lucide="info" class="card-title-icon"></i>
+                <span class="card-title">Sequential Execution Lifecycle</span>
+              </div>
+            </div>
+            <div class="info-steps">
+              <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <strong>Create Disposable Profile</strong>
+                  <p>A fresh browser profile is generated on the fly configured with the target proxy and anti-detect fingerprints.</p>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <strong>Launch Browser Window</strong>
+                  <p>The local engine opens the Chromium browser window. The runner enters "Waiting for Close" mode.</p>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <strong>Auto-Delete on Close</strong>
+                  <p>Once you close the browser window (or click Skip), the runner immediately deletes the temporary profile to keep your system 100% clean, then advances to the next proxy.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Modal: Modern User Login Overlay ─────────────────────────────── -->
+  <div class="login-overlay hidden" id="loginOverlay">
+    <div class="login-glow-orb login-glow-1"></div>
+    <div class="login-glow-orb login-glow-2"></div>
+
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo-badge">
+          <i data-lucide="shield-check" class="login-brand-icon"></i>
+        </div>
+        <h2 class="login-title">Welcome to HOSTRIF</h2>
+        <p class="login-subtitle">Sign in to sync your assigned profiles and launch automation.</p>
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="field-group">
+          <label class="field-label" for="loginEmail">Email Address</label>
+          <div class="input-icon-wrap">
+            <i data-lucide="mail"></i>
+            <input
+              type="email"
+              id="loginEmail"
+              class="input input-with-icon"
+              placeholder="operator@hostrif.com"
+              required
+              autocomplete="username"
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="loginPassword">Password</label>
+          <div class="input-icon-wrap password-wrap">
+            <i data-lucide="lock"></i>
+            <input
+              type="password"
+              id="loginPassword"
+              class="input input-with-icon input-with-action"
+              placeholder="••••••••••••"
+              required
+              autocomplete="current-password"
+            />
+            <button type="button" class="btn-toggle-pass" id="togglePasswordBtn" title="Toggle password visibility" tabindex="-1">
+              <i data-lucide="eye" id="togglePasswordIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="login-error hidden" id="loginError">
+          <i data-lucide="alert-triangle"></i>
+          <span id="loginErrorText">Invalid credentials.</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-login-submit" id="loginSubmitBtn">
+          <span id="loginSubmitText">Sign In</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "hostrif-client",
+  "version": "1.0.0",
+  "description": "HOSTRIF Client - Lightweight AdsPower Sequential Runner",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test-parser.js"
+  },
+  "keywords": [
+    "adspower",
+    "sequential",
+    "automation",
+    "browser",
+    "proxy"
+  ],
+  "author": "HOSTRIF",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "electron": "^40.7.0"
+  }
+}

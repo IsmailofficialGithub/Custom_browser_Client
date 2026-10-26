@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body {
+      background: transparent;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .widget-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+    }
+    .widget-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(15, 18, 29, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 9999px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(14px);
+      cursor: grab;
+      -webkit-app-region: drag;
+    }
+    .widget-pill:active {
+      cursor: grabbing;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      background: rgba(100, 116, 139, 0.2);
+      color: #94a3b8;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      transition: all 0.15s ease;
+    }
+    .status-badge:hover {
+      filter: brightness(1.2);
+      transform: scale(1.02);
+    }
+    .status-badge.recording {
+      background: rgba(244, 63, 94, 0.2);
+      color: #f43f5e;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+    .status-badge.uploading {
+      background: rgba(37, 99, 235, 0.2);
+      color: #60a5fa;
+    }
+    .status-badge.saved {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+    .status-badge.discarded {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .status-badge.recording .dot {
+      animation: blinkDot 0.8s infinite;
+    }
+    .timer {
+      font-family: ui-monospace, monospace;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .profile-chip {
+      font-size: 10px;
+      color: #94a3b8;
+      max-width: 95px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: ui-monospace, monospace;
+      padding-left: 4px;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .close-btn {
+      -webkit-app-region: no-drag;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin-left: 2px;
+    }
+    .close-btn:hover {
+      color: #f43f5e;
+      background: rgba(244, 63, 94, 0.15);
+    }
+    @keyframes blinkDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="widget-pill" id="widgetPill">
+      <div class="status-badge" id="statusBadge">
+        <span class="dot"></span>
+        <span id="badgeLabel">IDLE</span>
+      </div>
+      <span class="timer" id="timer">00:00</span>
+      <span class="profile-chip" id="profileChip">—</span>
+      <button class="close-btn" id="closeBtn" title="Hide Widget">&times;</button>
+    </div>
+  </div>
+
+  <script src="floating-recorder.js"></script>
+</body>
+</html>
