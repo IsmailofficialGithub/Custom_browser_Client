@@ -72,7 +72,7 @@ function generateEvomiProxies(evomiConfig, userId, teamId = null, count = 10) {
     basePassword = rawKey;
   }
 
-  const host = "core-residential.evomi.com";
+  const host = "rp.evomi.com";
   const osList = resolveOsAllocations(evomiConfig.osDistribution, count);
 
   return osList.map((os) => {

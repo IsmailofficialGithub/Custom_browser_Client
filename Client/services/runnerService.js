@@ -1,6 +1,40 @@
-'use strict';
-
+const axios = require('axios');
+const { SocksProxyAgent } = require('socks-proxy-agent');
 const AdsPowerClient = require('../adspower-client');
+
+async function resolveProxyExitIp(proxy) {
+  const proto = (proxy.proxy_type || proxy.protocol || 'socks5').toLowerCase();
+  const host = proxy.proxy_host || proxy.host;
+  const port = proxy.proxy_port || proxy.port;
+  const user = encodeURIComponent(proxy.proxy_user || proxy.user || '');
+  const pass = encodeURIComponent(proxy.proxy_password || proxy.pass || '');
+  const auth = user ? `${user}:${pass}@` : '';
+  const proxyUrl = `${proto}://${auth}${host}:${port}`;
+
+  const testEndpoints = [
+    'http://api.ipify.org',
+    'http://icanhazip.com',
+    'http://checkip.amazonaws.com'
+  ];
+
+  for (const url of testEndpoints) {
+    try {
+      const agent = new SocksProxyAgent(proxyUrl);
+      const res = await axios.get(url, {
+        httpAgent: agent,
+        httpsAgent: agent,
+        timeout: 12000,
+        responseType: 'text',
+        validateStatus: (s) => s >= 200 && s < 400
+      });
+      const exitIp = String(res.data || '').trim().replace(/\s+/g, '');
+      if (/^(\d{1,3}\.){3}\d{1,3}$/.test(exitIp) || /^[0-9a-fA-F:]+$/.test(exitIp)) {
+        return { ok: true, exitIp };
+      }
+    } catch (_) { }
+  }
+  return { ok: false, exitIp: null };
+}
 
 class RunnerService {
   constructor() {
