@@ -102,6 +102,19 @@ export async function initAuthAndSession() {
       if (userBadgeWrap) userBadgeWrap.style.display = 'inline-flex';
       if (loginOverlay) loginOverlay.classList.add('hidden');
       renderIcons();
+
+      // Verify token with backend
+      const cfgRes = await window.api.fetchAssignedConfig(session.token, session.endpoint || '');
+      if (cfgRes && !cfgRes.success && cfgRes.message && (cfgRes.message.includes('token') || cfgRes.message.includes('User not found') || cfgRes.message.includes('invalid'))) {
+        // Stale or invalid session - clear and prompt login
+        await window.api.logout();
+        state.currentUserSession = null;
+        if (userBadgeWrap) userBadgeWrap.style.display = 'none';
+        if (loginOverlay) loginOverlay.classList.remove('hidden');
+        renderIcons();
+        return;
+      }
+
       await syncAssignedBackendData(false);
       startProxyPolling();
     } else {
@@ -111,6 +124,7 @@ export async function initAuthAndSession() {
   } catch (err) {
     console.error('Session init error:', err);
     if (loginOverlay) loginOverlay.classList.remove('hidden');
+    renderIcons();
   }
 }
 
