@@ -40,34 +40,62 @@ function resolveOsAllocations(osDistribution, totalCount = 10) {
   return result;
 }
 
+function buildEvomiSessionId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let s = '';
+  for (let i = 0; i < 10; i++) {
+    s += chars[crypto.randomInt(chars.length)];
+  }
+  return s;
+}
+
 function generateEvomiProxies(evomiConfig, userId, teamId = null, count = 10) {
   if (!evomiConfig || !evomiConfig.apiKey) {
     return [];
   }
 
-  const apiKey = evomiConfig.apiKey.trim();
-  const country = (evomiConfig.country || "all").toLowerCase().trim();
-  const protocol = (evomiConfig.protocol || "http").toLowerCase().trim();
+  const rawKey = evomiConfig.apiKey.trim();
+  const country = (evomiConfig.country || "all").toUpperCase().trim();
+  const protocol = (evomiConfig.protocol || "socks5").toLowerCase().trim();
   const port = protocol === "socks5" ? "1002" : "1000";
-  const host = "rp.evomi.com";
 
+  // Check if rawKey is in "username:password" format or single key
+  let username = "";
+  let basePassword = "";
+
+  if (rawKey.includes(":")) {
+    const parts = rawKey.split(":");
+    username = parts[0].trim();
+    basePassword = parts.slice(1).join(":").trim();
+  } else {
+    username = rawKey;
+    basePassword = rawKey;
+  }
+
+  const host = "core-residential.evomi.com";
   const osList = resolveOsAllocations(evomiConfig.osDistribution, count);
 
   return osList.map((os) => {
-    const sessionId = crypto.randomBytes(4).toString("hex");
-    let userParam = apiKey;
-    if (country && country !== "all") {
-      userParam += "-country-" + country;
+    const session = buildEvomiSessionId();
+    let devSuffix = "";
+    if (os === "windows") devSuffix = "_device-windows";
+    else if (os === "android") devSuffix = "_device-unix";
+
+    let loc = "";
+    if (country && country !== "ALL") {
+      loc = `_country-${country}`;
     }
-    userParam += "-os-" + os + "-session-" + sessionId;
+
+    // Standard Evomi Core Residential password targeting format
+    const pass = `${basePassword}${loc}${devSuffix}_localdns-1_session-${session}_lifetime-1440`;
 
     return {
       userId,
       teamId: teamId || null,
       host,
       port,
-      user: userParam,
-      pass: "",
+      user: username,
+      pass,
       protocol,
       os,
       status: "fresh"
