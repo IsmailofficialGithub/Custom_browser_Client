@@ -69,11 +69,11 @@ class AdsPowerClient {
       group_id: '0',
       user_proxy_config: {
         proxy_soft: proxy?.proxy_soft || 'other',
-        proxy_type: (proxy?.proxy_type || 'http').toLowerCase(),
-        proxy_host: proxy?.proxy_host || '',
-        proxy_port: String(proxy?.proxy_port || ''),
-        proxy_user: proxy?.proxy_user || '',
-        proxy_password: proxy?.proxy_password || ''
+        proxy_type: (proxy?.proxy_type || proxy?.protocol || 'socks5').toLowerCase(),
+        proxy_host: proxy?.proxy_host || proxy?.host || '',
+        proxy_port: String(proxy?.proxy_port || proxy?.port || ''),
+        proxy_user: proxy?.proxy_user || proxy?.user || '',
+        proxy_password: proxy?.proxy_password || proxy?.pass || ''
       },
       fingerprint_config: {
         platform,
