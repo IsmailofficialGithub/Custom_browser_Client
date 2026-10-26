@@ -27,31 +27,38 @@ services:
       dockerfile: Dockerfile
     container_name: hostrif-backend
     restart: always
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-hostrif}?schema=public"
       JWT_SECRET: ${JWT_SECRET:-hostrif-super-secret-jwt-key-2026}
-      GRPC_HOST: "0.0.0.0"
-      GRPC_PORT: "50051"
-      ADMIN_HTTP_PORT: "50052"
+      GRPC_HOST: ${GRPC_HOST:-0.0.0.0}
+      GRPC_PORT: ${GRPC_PORT:-50051}
+      ADMIN_HTTP_PORT: ${ADMIN_HTTP_PORT:-50052}
     ports:
-      - "50051:50051"
-      - "50052:50052"
+      - "${GRPC_PORT:-50051}:${GRPC_PORT:-50051}"
+      - "${ADMIN_HTTP_PORT:-50052}:${ADMIN_HTTP_PORT:-50052}"
 
   admin:
     build:
       context: ../Admin
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:50052}
     container_name: hostrif-admin
     restart: always
+    env_file:
+      - .env
     depends_on:
       - backend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:50052}
+      PORT: ${ADMIN_PORT:-3000}
     ports:
-      - "3000:3000"
+      - "${ADMIN_PORT:-3000}:${ADMIN_PORT:-3000}"
 
 volumes:
   hostrif_pgdata:
