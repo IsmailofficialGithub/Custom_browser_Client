@@ -84,8 +84,10 @@ class AdsPowerClient {
       }
     };
 
+    console.log('[AdsPower] createProfile payload:', JSON.stringify(payload, null, 2));
     try {
       const res = await this.http.post('/api/v1/user/create', payload);
+      console.log('[AdsPower] createProfile response:', JSON.stringify(res.data));
       if (res.data && res.data.code === 0 && res.data.data?.id) {
         return { ok: true, id: res.data.data.id, data: res.data.data };
       }
@@ -96,6 +98,7 @@ class AdsPowerClient {
       }
       return { ok: false, error: `Failed to create profile: ${msg}` };
     } catch (err) {
+      console.error('[AdsPower] createProfile error:', err.message);
       return { ok: false, error: `AdsPower create request failed: ${err.message}` };
     }
   }
@@ -113,6 +116,7 @@ class AdsPowerClient {
         params.launch_args = JSON.stringify(launchArgs);
       }
       const res = await this.http.get('/api/v1/browser/start', { params });
+      console.log('[AdsPower] startBrowser response:', JSON.stringify(res.data));
       if (res.data && res.data.code === 0) {
         return { ok: true, data: res.data.data };
       }
@@ -123,6 +127,7 @@ class AdsPowerClient {
       }
       return { ok: false, error: `Failed to start browser: ${msg}` };
     } catch (err) {
+      console.error('[AdsPower] startBrowser error:', err.message);
       return { ok: false, error: `AdsPower start browser failed: ${err.message}` };
     }
   }

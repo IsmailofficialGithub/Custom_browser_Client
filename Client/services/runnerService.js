@@ -163,7 +163,7 @@ class RunnerService {
 
         const effectiveOs = proxy.os || 'windows';
         this.sendProgress(i + 1, total, proxy, profileName);
-        this.log('info', `[${i + 1}/${total}] Preparing ${effectiveOs.toUpperCase()} profile: host=${proxy.proxy_host}:${proxy.proxy_port}, user=${proxy.proxy_user || '(empty)'}, pass=${proxy.proxy_password ? (proxy.proxy_password.slice(0, 8) + '...') : '(empty)'}`);
+        this.log('info', `[${i + 1}/${total}] Creating profile: ${effectiveOs.toUpperCase()} | ${proxy.proxy_host || proxy.host}:${proxy.proxy_port || proxy.port} | user=${proxy.proxy_user || proxy.user || '(none)'} | type=${proxy.proxy_type || proxy.protocol || 'socks5'}`);
 
         // 1. Create profile
         this.setStatus('creating');
@@ -174,7 +174,7 @@ class RunnerService {
         });
 
         if (!createRes.ok || !createRes.id) {
-          this.log('error', `Failed to create profile: ${createRes.error}`);
+          this.log('error', `[AdsPower] Create profile FAILED: ${createRes.error}`);
           await this.sleep(1500);
           continue;
         }
