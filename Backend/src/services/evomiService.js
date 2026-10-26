@@ -48,7 +48,7 @@ function generateEvomiProxies(evomiConfig, userId, teamId = null, count = 10) {
   const apiKey = evomiConfig.apiKey.trim();
   const country = (evomiConfig.country || "all").toLowerCase().trim();
   const protocol = (evomiConfig.protocol || "http").toLowerCase().trim();
-  const port = protocol === "socks5" ? "1001" : "1000";
+  const port = protocol === "socks5" ? "1002" : "1000";
   const host = "rp.evomi.com";
 
   const osList = resolveOsAllocations(evomiConfig.osDistribution, count);
