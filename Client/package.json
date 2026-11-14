@@ -17,7 +17,10 @@
   "author": "HOSTRIF",
   "license": "MIT",
   "dependencies": {
+    "@grpc/grpc-js": "^1.14.7",
+    "@grpc/proto-loader": "^0.8.1",
     "axios": "^1.7.2",
+    "form-data": "^4.0.6",
     "socks-proxy-agent": "^10.1.0"
   },
   "devDependencies": {
