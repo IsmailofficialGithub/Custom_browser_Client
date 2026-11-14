@@ -164,7 +164,7 @@ export function initRunnerUi() {
     if (headerStatusPill) headerStatusPill.className = `status-pill ${status}`;
     if (headerStatusText) headerStatusText.textContent = status.toUpperCase().replace('_', ' ');
 
-    if (['running', 'creating', 'launching', 'waiting_close', 'cleaning'].includes(status)) {
+    if (['running', 'testing', 'creating', 'launching', 'waiting_close', 'cleaning'].includes(status)) {
       state.isRunning = true;
       if (quickStartBtn) quickStartBtn.disabled = true;
       if (quickSkipBtn) quickSkipBtn.disabled = false;

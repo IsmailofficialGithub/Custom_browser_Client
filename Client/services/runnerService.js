@@ -1,15 +1,23 @@
+const fs = require('fs');
+const path = require('path');
 const axios = require('axios');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 const AdsPowerClient = require('../adspower-client');
 
-async function resolveProxyExitIp(proxy) {
+/**
+ * Test a proxy from THIS PC before AdsPower gets it, so a run log can tell apart
+ * "the proxy really is bad" (wrong password, refused, timeout) from
+ * "the proxy works but AdsPower rejects it".
+ * SOCKS proxies go through socks-proxy-agent; HTTP(S) proxies through axios' own proxy support.
+ * @returns {Promise<{ok: boolean, exitIp: string|null, error: string|null}>}
+ */
+async function testProxy(proxy) {
   const proto = (proxy.proxy_type || proxy.protocol || 'socks5').toLowerCase();
   const host = proxy.proxy_host || proxy.host;
-  const port = proxy.proxy_port || proxy.port;
-  const user = encodeURIComponent(proxy.proxy_user || proxy.user || '');
-  const pass = encodeURIComponent(proxy.proxy_password || proxy.pass || '');
-  const auth = user ? `${user}:${pass}@` : '';
-  const proxyUrl = `${proto}://${auth}${host}:${port}`;
+  const port = Number(proxy.proxy_port || proxy.port);
+  const rawUser = proxy.proxy_user || proxy.user || '';
+  const rawPass = proxy.proxy_password || proxy.pass || '';
+  const isSocks = proto.startsWith('socks');
 
   const testEndpoints = [
     'http://api.ipify.org',
@@ -17,23 +25,49 @@ async function resolveProxyExitIp(proxy) {
     'http://checkip.amazonaws.com'
   ];
 
+  const errors = [];
   for (const url of testEndpoints) {
     try {
-      const agent = new SocksProxyAgent(proxyUrl);
-      const res = await axios.get(url, {
-        httpAgent: agent,
-        httpsAgent: agent,
-        timeout: 12000,
+      const opts = {
+        timeout: 15000,
         responseType: 'text',
         validateStatus: (s) => s >= 200 && s < 400
-      });
+      };
+      if (isSocks) {
+        const auth = rawUser ? `${encodeURIComponent(rawUser)}:${encodeURIComponent(rawPass)}@` : '';
+        const agent = new SocksProxyAgent(`${proto}://${auth}${host}:${port}`);
+        opts.httpAgent = agent;
+        opts.httpsAgent = agent;
+        opts.proxy = false;
+      } else {
+        opts.proxy = {
+          protocol: 'http',
+          host,
+          port,
+          ...(rawUser ? { auth: { username: rawUser, password: rawPass } } : {})
+        };
+      }
+      const res = await axios.get(url, opts);
       const exitIp = String(res.data || '').trim().replace(/\s+/g, '');
       if (/^(\d{1,3}\.){3}\d{1,3}$/.test(exitIp) || /^[0-9a-fA-F:]+$/.test(exitIp)) {
-        return { ok: true, exitIp };
+        return { ok: true, exitIp, error: null };
       }
-    } catch (_) { }
+      errors.push(`${url}: unexpected reply "${exitIp.slice(0, 60)}"`);
+    } catch (err) {
+      const status = err.response ? ` (HTTP ${err.response.status})` : '';
+      errors.push(`${url}: ${err.code || ''} ${err.message}${status}`.trim());
+    }
   }
-  return { ok: false, exitIp: null };
+  return { ok: false, exitIp: null, error: errors[errors.length - 1] || 'no response' };
+}
+
+/** Runner log file in the app's userData folder, so errors survive after the window closes. */
+function runnerLogPath() {
+  try {
+    return path.join(require('electron').app.getPath('userData'), 'runner.log');
+  } catch (_) {
+    return null;
+  }
 }
 
 class RunnerService {
@@ -78,6 +112,12 @@ class RunnerService {
     };
     console.log(`[${item.timestamp}] [${level.toUpperCase()}] ${message}`);
     if (this.listeners.onLog) this.listeners.onLog(item);
+    const logFile = runnerLogPath();
+    if (logFile) {
+      try {
+        fs.appendFileSync(logFile, `${new Date().toISOString()} [${level.toUpperCase()}] ${message}\n`);
+      } catch (_) { /* logging must never break a run */ }
+    }
   }
 
   setStatus(status) {
@@ -165,6 +205,16 @@ class RunnerService {
         this.sendProgress(i + 1, total, proxy, profileName);
         this.log('info', `[${i + 1}/${total}] Creating profile: ${effectiveOs.toUpperCase()} | ${proxy.proxy_host || proxy.host}:${proxy.proxy_port || proxy.port} | user=${proxy.proxy_user || proxy.user || '(none)'} | type=${proxy.proxy_type || proxy.protocol || 'socks5'}`);
 
+        // 0. Test the proxy from this PC first — tells "bad proxy" apart from "AdsPower rejected it"
+        this.setStatus('testing');
+        const proxyTest = await testProxy(proxy);
+        if (!proxyTest.ok) {
+          this.log('error', `Proxy test FAILED from this PC — skipping (no AdsPower profile created): ${proxyTest.error}`);
+          await this.sleep(1000);
+          continue;
+        }
+        this.log('success', `Proxy OK from this PC (exit IP ${proxyTest.exitIp})`);
+
         // 1. Create profile
         this.setStatus('creating');
         const createRes = await this.adsClient.createProfile({
@@ -196,7 +246,7 @@ class RunnerService {
         const launchRes = await this.adsClient.startBrowser(profileId);
 
         if (!launchRes.ok) {
-          this.log('error', `Failed to launch browser: ${launchRes.error}`);
+          this.log('error', `Failed to launch browser: ${launchRes.error} — the proxy passed the test from this PC (exit IP ${proxyTest.exitIp}), so AdsPower rejected a working proxy; see AdsPower's message above.`);
           await this.adsClient.deleteProfile(profileId);
           this.state.activeProfileId = null;
           await this.sleep(1500);

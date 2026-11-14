@@ -409,6 +409,7 @@ body::after {
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+.status-pill.testing,
 .status-pill.creating,
 .status-pill.launching {
   background: rgba(245, 158, 11, 0.12);

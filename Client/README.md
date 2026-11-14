@@ -22,17 +22,16 @@ A dedicated, lightweight Electron desktop application built solely for **AdsPowe
 
 ## How to Run
 
-From this folder (`./hostrif-client`):
+From the `Client/` folder of this repository:
 
 ```bash
-# If running standalone
+npm install
 npm start
 ```
 
-Or from the root `Money_browser` directory:
-```bash
-npx electron hostrif-client
-```
+Runner log (every run step, proxy test result and AdsPower error) is also written to
+`runner.log` in the app's data folder (Linux: `~/.config/hostrif-client/runner.log`,
+Windows: `%APPDATA%\hostrif-client\runner.log`).
 
 ---
 
