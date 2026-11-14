@@ -7,15 +7,26 @@ async function getUserAssignedProxies(userId, statusFilter = 'all') {
   // If requesting fresh or all proxies, check if Evomi auto-generation is enabled
   if (!statusFilter || statusFilter === 'all' || statusFilter === 'fresh') {
     try {
+      const evomiConfig = await prisma.evomiConfig.findUnique({
+        where: { userId }
+      });
+
+      // Retire proxies made by the old generator, which used the Evomi API key as the
+      // proxy username — Evomi rejects those ("Socks5 proxy rejected connection").
+      const apiKey = evomiConfig && evomiConfig.apiKey ? evomiConfig.apiKey.trim() : '';
+      if (apiKey && !apiKey.includes(':')) {
+        const retired = await prisma.proxy.updateMany({
+          where: { userId, status: 'fresh', user: apiKey },
+          data: { status: 'failed', errorMessage: 'Invalid Evomi credentials (API key used as proxy login) — regenerated' }
+        });
+        if (retired.count) console.log(`[Evomi AutoGen] Retired ${retired.count} proxies with invalid credentials for user ${userId}`);
+      }
+
       const freshCount = await prisma.proxy.count({
         where: { userId, status: 'fresh' }
       });
 
       if (freshCount < 10) {
-        const evomiConfig = await prisma.evomiConfig.findUnique({
-          where: { userId }
-        });
-
         if (evomiConfig && evomiConfig.enabled && evomiConfig.apiKey) {
           const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -24,7 +35,7 @@ async function getUserAssignedProxies(userId, statusFilter = 'all') {
 
           const needed = (evomiConfig.batchSize || 10) - freshCount;
           if (needed > 0) {
-            const newProxies = generateEvomiProxies(
+            const newProxies = await generateEvomiProxies(
               evomiConfig,
               userId,
               user?.memberTeamId || null,
